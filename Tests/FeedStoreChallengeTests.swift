@@ -18,7 +18,7 @@ class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
 	//  Repeat this process until all tests are passing.
 	//
 	//  ***********************
-	
+
 	func test_retrieve_deliversEmptyOnEmptyCache() throws {
 		let sut = try makeSUT()
 
@@ -32,9 +32,9 @@ class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
 	}
 	
 	func test_retrieve_deliversFoundValuesOnNonEmptyCache() throws {
-//		let sut = try makeSUT()
-//
-//		assertThatRetrieveDeliversFoundValuesOnNonEmptyCache(on: sut)
+		let sut = try makeSUT()
+
+		assertThatRetrieveDeliversFoundValuesOnNonEmptyCache(on: sut)
 	}
 	
 	func test_retrieve_hasNoSideEffectsOnNonEmptyCache() throws {
@@ -99,20 +99,77 @@ class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
 	
 }
 
+import CoreData
+
 class CoreDataFeedStore: FeedStore {
+
+	lazy var persistentContainer: NSPersistentContainer? = {
+
+		guard let model = NSManagedObjectModel(contentsOf: Bundle(for: CoreDataFeedStore.self).url(forResource: "FeedStore", withExtension: "momd")!) else { return nil }
+
+		let container = NSPersistentContainer(name: "FeedStore", managedObjectModel: model)
+		let description = NSPersistentStoreDescription(url: URL(fileURLWithPath: "dev/null"))
+		description.type = NSInMemoryStoreType
+		container.persistentStoreDescriptions = [description]
+
+		container.loadPersistentStores { description, error in
+			if let error = error {
+				fatalError("Unable to load persistent stores: \(error)")
+			}
+		}
+		return container
+	}()
+
 	func deleteCachedFeed(completion: @escaping DeletionCompletion) {
 
 	}
 
 	func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
+		guard let managedContext = persistentContainer?.viewContext else { return completion(NSError(domain: "any", code: -1, userInfo: nil)) }
+		var managedObjects = [NSManagedObject]()
+		feed.forEach { managedObjects.append(self.entity(for: $0, timestamp: timestamp, withManagedContext: managedContext))}
 
+		try! managedContext.save()
+
+		completion(nil)
+	}
+
+	private func entity(for localFeedImage: LocalFeedImage, timestamp: Date, withManagedContext managedContext: NSManagedObjectContext) -> NSManagedObject {
+		let entity = NSEntityDescription.entity(forEntityName: "FeedImage", in: managedContext)!
+		let feedImage = NSManagedObject(entity: entity, insertInto: managedContext)
+
+		feedImage.setValue(localFeedImage.id, forKey: "id")
+		feedImage.setValue(localFeedImage.description, forKey: "imageDescription")
+		feedImage.setValue(localFeedImage.location, forKey: "location")
+		feedImage.setValue(localFeedImage.url, forKey: "url")
+		feedImage.setValue(timestamp, forKey: "timestamp")
+
+		return feedImage
 	}
 
 	func retrieve(completion: @escaping RetrievalCompletion) {
-		completion(.empty)
+		guard let managedContext = persistentContainer?.viewContext else { return completion(.failure(NSError(domain: "any", code: -1, userInfo: nil))) }
+
+		let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "FeedImage")
+
+		let result = try! managedContext.fetch(fetchRequest)
+		if result.isEmpty {
+			completion(.empty)
+		} else {
+			completion(.found(feed: result.compactMap { self.localFeedImage(for: $0) }.sorted(by: { lhs, rhs -> Bool in
+				return lhs.id.uuidString < rhs.id.uuidString
+			}), timestamp: result.last?.value(forKey: "timestamp") as! Date))
+		}
 	}
 
+	private func localFeedImage(for managedObject: NSManagedObject) -> LocalFeedImage? {
+		guard let id = managedObject.value(forKey: "id") as? UUID,
+			  let description = managedObject.value(forKey: "imageDescription") as? String,
+			  let location = managedObject.value(forKey: "location") as? String,
+			  let url = managedObject.value(forKey: "url") as? URL else { return nil }
 
+		return LocalFeedImage(id: id, description: description, location: location, url: url)
+	}
 }
 
 //  ***********************
