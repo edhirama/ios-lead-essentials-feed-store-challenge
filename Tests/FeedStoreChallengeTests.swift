@@ -140,7 +140,7 @@ class CoreDataFeedStore: FeedStore {
 		feed.forEach { cacheFeed.append(self.entity(for: $0, withManagedContext: managedContext))}
 
 
-		let cacheEntity = NSEntityDescription.entity(forEntityName: "LocalCache", in: managedContext)!
+		let cacheEntity = NSEntityDescription.entity(forEntityName: LocalCache.className(), in: managedContext)!
 		let localCache = LocalCache(entity: cacheEntity, insertInto: managedContext)
 		localCache.feed = NSOrderedSet(array: cacheFeed)
 		localCache.timestamp = timestamp
@@ -150,7 +150,7 @@ class CoreDataFeedStore: FeedStore {
 	}
 
 	private func entity(for localFeedImage: LocalFeedImage, withManagedContext managedContext: NSManagedObjectContext) -> CacheFeedImage {
-		let entity = NSEntityDescription.entity(forEntityName: "CacheFeedImage", in: managedContext)!
+		let entity = NSEntityDescription.entity(forEntityName: CacheFeedImage.className(), in: managedContext)!
 		let feedImage = CacheFeedImage(entity: entity, insertInto: managedContext)
 
 		feedImage.id = localFeedImage.id
