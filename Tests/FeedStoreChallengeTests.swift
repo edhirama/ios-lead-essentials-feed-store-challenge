@@ -62,9 +62,9 @@ class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
 	}
 	
 	func test_delete_deliversNoErrorOnEmptyCache() throws {
-//		let sut = try makeSUT()
-//
-//		assertThatDeleteDeliversNoErrorOnEmptyCache(on: sut)
+		let sut = try makeSUT()
+
+		assertThatDeleteDeliversNoErrorOnEmptyCache(on: sut)
 	}
 	
 	func test_delete_hasNoSideEffectsOnEmptyCache() throws {
@@ -93,10 +93,17 @@ class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
 	
 	// - MARK: Helpers
 	
-	private func makeSUT() throws -> FeedStore {
-		CoreDataFeedStore(storeURL: URL(fileURLWithPath: "/dev/null"), bundle: Bundle(for: FeedStoreChallengeTests.self))
+	private func makeSUT(file: StaticString = #filePath, line: UInt = #line) throws -> FeedStore {
+		let sut = CoreDataFeedStore(storeURL: URL(fileURLWithPath: "/dev/null"), bundle: Bundle(for: FeedStoreChallengeTests.self))
+		trackForMemoryLeaks(sut, file: file, line: line)
+		return sut
 	}
-	
+
+	private func trackForMemoryLeaks(_ instance: AnyObject, file: StaticString = #filePath, line: UInt = #line) {
+		addTeardownBlock { [weak instance] in
+			XCTAssertNil(instance, file: file, line: line)
+		}
+	}
 }
 
 import CoreData
@@ -130,7 +137,11 @@ class CoreDataFeedStore: FeedStore {
 	}
 
 	func deleteCachedFeed(completion: @escaping DeletionCompletion) {
+		guard let managedContext = persistentContainer?.viewContext else { return completion(NSError(domain: "any", code: -1, userInfo: nil)) }
+		deleteCurrentCacheIfNeeded(in: managedContext)
+		try! managedContext.save()
 
+		completion(nil)
 	}
 
 	func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
