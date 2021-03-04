@@ -135,22 +135,31 @@ class CoreDataFeedStore: FeedStore {
 
 	func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
 		guard let managedContext = persistentContainer?.viewContext else { return completion(NSError(domain: "any", code: -1, userInfo: nil)) }
-		let fetchRequest:NSFetchRequest<LocalCache> = NSFetchRequest(entityName: LocalCache.className())
-		if let fetchResult = try? managedContext.fetch(fetchRequest), let existingFeed = fetchResult.first {
-			managedContext.delete(existingFeed)
-		}
 
-		var cacheFeed = [CacheFeedImage]()
-		feed.forEach { cacheFeed.append(self.entity(for: $0, withManagedContext: managedContext))}
+		deleteCurrentCacheIfNeeded(in: managedContext)
+		createNewCachedFeed(feed, timestamp: timestamp, in: managedContext)
 
-
-		let cacheEntity = NSEntityDescription.entity(forEntityName: LocalCache.className(), in: managedContext)!
-		let localCache = LocalCache(entity: cacheEntity, insertInto: managedContext)
-		localCache.feed = NSOrderedSet(array: cacheFeed)
-		localCache.timestamp = timestamp
 		try! managedContext.save()
 
 		completion(nil)
+	}
+
+	private func createNewCachedFeed(_ feed: [LocalFeedImage], timestamp: Date, in context: NSManagedObjectContext) {
+		var cacheFeed = [CacheFeedImage]()
+		feed.forEach { cacheFeed.append(self.entity(for: $0, withManagedContext: context))}
+
+
+		let cacheEntity = NSEntityDescription.entity(forEntityName: LocalCache.className(), in: context)!
+		let localCache = LocalCache(entity: cacheEntity, insertInto: context)
+		localCache.feed = NSOrderedSet(array: cacheFeed)
+		localCache.timestamp = timestamp
+	}
+
+	private func deleteCurrentCacheIfNeeded(in context: NSManagedObjectContext) {
+		let fetchRequest: NSFetchRequest<LocalCache> = NSFetchRequest(entityName: LocalCache.className())
+		if let fetchResult = try? context.fetch(fetchRequest), let existingFeed = fetchResult.first {
+			context.delete(existingFeed)
+		}
 	}
 
 	private func entity(for localFeedImage: LocalFeedImage, withManagedContext managedContext: NSManagedObjectContext) -> CacheFeedImage {
