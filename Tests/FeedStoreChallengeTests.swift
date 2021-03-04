@@ -94,7 +94,7 @@ class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
 	// - MARK: Helpers
 	
 	private func makeSUT() throws -> FeedStore {
-		CoreDataFeedStore(storeType: NSInMemoryStoreType, bundle: Bundle(for: FeedStoreChallengeTests.self))
+		CoreDataFeedStore(storeURL: URL(fileURLWithPath: "/dev/null"), bundle: Bundle(for: FeedStoreChallengeTests.self))
 	}
 	
 }
@@ -103,7 +103,7 @@ import CoreData
 
 class CoreDataFeedStore: FeedStore {
 
-	private let storeType: String
+	private let storeURL: URL
 	private let bundle: Bundle
 
 	private static let resourceName: String = "FeedStore"
@@ -113,8 +113,7 @@ class CoreDataFeedStore: FeedStore {
 		guard let model = NSManagedObjectModel(contentsOf: bundle.url(forResource: CoreDataFeedStore.resourceName, withExtension: "momd")!) else { return nil }
 
 		let container = NSPersistentContainer(name: CoreDataFeedStore.resourceName, managedObjectModel: model)
-		let description = NSPersistentStoreDescription(url: URL(fileURLWithPath: "dev/null"))
-		description.type = storeType
+		let description = NSPersistentStoreDescription(url: storeURL)
 		container.persistentStoreDescriptions = [description]
 
 		container.loadPersistentStores { description, error in
@@ -125,8 +124,8 @@ class CoreDataFeedStore: FeedStore {
 		return container
 	}()
 
-	init(storeType: String = NSSQLiteStoreType, bundle: Bundle = .main) {
-		self.storeType = storeType
+	init(storeURL: URL, bundle: Bundle = .main) {
+		self.storeURL = storeURL
 		self.bundle = bundle
 	}
 
