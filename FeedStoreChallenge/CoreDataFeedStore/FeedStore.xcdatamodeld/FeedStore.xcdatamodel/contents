@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17709" systemVersion="19H15" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
-    <entity name="FeedImage" representedClassName="FeedImage" syncable="YES" codeGenerationType="class">
+    <entity name="CacheFeedImage" representedClassName="CacheFeedImage" syncable="YES">
         <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="imageDescription" attributeType="String"/>
         <attribute name="location" attributeType="String"/>
-        <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="url" attributeType="URI"/>
     </entity>
+    <entity name="LocalCache" representedClassName="LocalCache" syncable="YES">
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="feed" toMany="YES" minCount="1" deletionRule="Cascade" ordered="YES" destinationEntity="CacheFeedImage"/>
+    </entity>
     <elements>
-        <element name="FeedImage" positionX="-63" positionY="-18" width="128" height="118"/>
+        <element name="CacheFeedImage" positionX="-63" positionY="-18" width="128" height="103"/>
+        <element name="LocalCache" positionX="132.1328125" positionY="-6.23046875" width="143.1484375" height="73"/>
     </elements>
 </model>

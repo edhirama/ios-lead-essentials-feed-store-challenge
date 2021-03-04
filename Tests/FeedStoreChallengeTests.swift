@@ -136,23 +136,27 @@ class CoreDataFeedStore: FeedStore {
 
 	func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
 		guard let managedContext = persistentContainer?.viewContext else { return completion(NSError(domain: "any", code: -1, userInfo: nil)) }
-		var managedObjects = [NSManagedObject]()
-		feed.forEach { managedObjects.append(self.entity(for: $0, timestamp: timestamp, withManagedContext: managedContext))}
+		var cacheFeed = [CacheFeedImage]()
+		feed.forEach { cacheFeed.append(self.entity(for: $0, withManagedContext: managedContext))}
 
+
+		let cacheEntity = NSEntityDescription.entity(forEntityName: "LocalCache", in: managedContext)!
+		let localCache = LocalCache(entity: cacheEntity, insertInto: managedContext)
+		localCache.feed = NSOrderedSet(array: cacheFeed)
+		localCache.timestamp = timestamp
 		try! managedContext.save()
 
 		completion(nil)
 	}
 
-	private func entity(for localFeedImage: LocalFeedImage, timestamp: Date, withManagedContext managedContext: NSManagedObjectContext) -> NSManagedObject {
-		let entity = NSEntityDescription.entity(forEntityName: "FeedImage", in: managedContext)!
-		let feedImage = NSManagedObject(entity: entity, insertInto: managedContext)
+	private func entity(for localFeedImage: LocalFeedImage, withManagedContext managedContext: NSManagedObjectContext) -> CacheFeedImage {
+		let entity = NSEntityDescription.entity(forEntityName: "CacheFeedImage", in: managedContext)!
+		let feedImage = CacheFeedImage(entity: entity, insertInto: managedContext)
 
-		feedImage.setValue(localFeedImage.id, forKey: "id")
-		feedImage.setValue(localFeedImage.description, forKey: "imageDescription")
-		feedImage.setValue(localFeedImage.location, forKey: "location")
-		feedImage.setValue(localFeedImage.url, forKey: "url")
-		feedImage.setValue(timestamp, forKey: "timestamp")
+		feedImage.id = localFeedImage.id
+		feedImage.imageDescription = localFeedImage.description ?? ""
+		feedImage.location = localFeedImage.location ?? ""
+		feedImage.url = localFeedImage.url
 
 		return feedImage
 	}
@@ -160,26 +164,16 @@ class CoreDataFeedStore: FeedStore {
 	func retrieve(completion: @escaping RetrievalCompletion) {
 		guard let managedContext = persistentContainer?.viewContext else { return completion(.failure(NSError(domain: "any", code: -1, userInfo: nil))) }
 
-		let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "FeedImage")
+		let fetchRequest = NSFetchRequest<LocalCache>(entityName: "LocalCache")
 
 		let result = try! managedContext.fetch(fetchRequest)
 		if result.isEmpty {
 			completion(.empty)
 		} else {
-			completion(.found(feed: result.compactMap { self.localFeedImage(for: $0) }.sorted(by: { lhs, rhs -> Bool in
-				return lhs.id.uuidString < rhs.id.uuidString
-			}), timestamp: result.last?.value(forKey: "timestamp") as! Date))
+			completion(.found(feed: result.first!.feed.array.compactMap { ($0 as? CacheFeedImage)?.localFeedImage } , timestamp: result.first!.timestamp))
 		}
 	}
 
-	private func localFeedImage(for managedObject: NSManagedObject) -> LocalFeedImage? {
-		guard let id = managedObject.value(forKey: "id") as? UUID,
-			  let description = managedObject.value(forKey: "imageDescription") as? String,
-			  let location = managedObject.value(forKey: "location") as? String,
-			  let url = managedObject.value(forKey: "url") as? URL else { return nil }
-
-		return LocalFeedImage(id: id, description: description, location: location, url: url)
-	}
 }
 
 //  ***********************
