@@ -94,7 +94,7 @@ class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
 	// - MARK: Helpers
 	
 	private func makeSUT(file: StaticString = #filePath, line: UInt = #line) throws -> FeedStore {
-		let sut = CoreDataFeedStore(storeURL: URL(fileURLWithPath: "/dev/null"), bundle: Bundle(for: FeedStoreChallengeTests.self))
+		let sut = try CoreDataFeedStore(storeURL: URL(fileURLWithPath: "/dev/null"), bundle: Bundle(for: FeedStoreChallengeTests.self))
 		trackForMemoryLeaks(sut, file: file, line: line)
 		return sut
 	}
@@ -110,34 +110,41 @@ import CoreData
 
 class CoreDataFeedStore: FeedStore {
 
+	enum CoreDataError: Error {
+		case unableToFindModel
+		case unableToLoad(Error)
+	}
+
 	private let storeURL: URL
 	private let bundle: Bundle
 
 	private static let resourceName: String = "FeedStore"
 
-	lazy var persistentContainer: NSPersistentContainer? = {
+	private let persistentContainer: NSPersistentContainer
 
-		guard let model = NSManagedObjectModel(contentsOf: bundle.url(forResource: CoreDataFeedStore.resourceName, withExtension: "momd")!) else { return nil }
+	init(storeURL: URL, bundle: Bundle = .main) throws {
+		self.storeURL = storeURL
+		self.bundle = bundle
+
+		guard let bundleURL = bundle.url(forResource: CoreDataFeedStore.resourceName, withExtension: "momd"),
+			  let model = NSManagedObjectModel(contentsOf: bundleURL) else { throw CoreDataError.unableToFindModel }
 
 		let container = NSPersistentContainer(name: CoreDataFeedStore.resourceName, managedObjectModel: model)
 		let description = NSPersistentStoreDescription(url: storeURL)
 		container.persistentStoreDescriptions = [description]
 
-		container.loadPersistentStores { description, error in
-			if let error = error {
-				fatalError("Unable to load persistent stores: \(error)")
-			}
+		var loadError: Error?
+		container.loadPersistentStores { _, error in
+			loadError = error
 		}
-		return container
-	}()
-
-	init(storeURL: URL, bundle: Bundle = .main) {
-		self.storeURL = storeURL
-		self.bundle = bundle
+		if let error = loadError {
+			throw CoreDataError.unableToLoad(error)
+		}
+		self.persistentContainer = container
 	}
 
 	func deleteCachedFeed(completion: @escaping DeletionCompletion) {
-		guard let managedContext = persistentContainer?.viewContext else { return completion(NSError(domain: "any", code: -1, userInfo: nil)) }
+		let managedContext = persistentContainer.viewContext
 		deleteCurrentCacheIfNeeded(in: managedContext)
 		try! managedContext.save()
 
@@ -145,7 +152,7 @@ class CoreDataFeedStore: FeedStore {
 	}
 
 	func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
-		guard let managedContext = persistentContainer?.viewContext else { return completion(NSError(domain: "any", code: -1, userInfo: nil)) }
+		let managedContext = persistentContainer.viewContext
 
 		deleteCurrentCacheIfNeeded(in: managedContext)
 		createNewCachedFeed(feed, timestamp: timestamp, in: managedContext)
@@ -186,7 +193,7 @@ class CoreDataFeedStore: FeedStore {
 	}
 
 	func retrieve(completion: @escaping RetrievalCompletion) {
-		guard let managedContext = persistentContainer?.viewContext else { return completion(.failure(NSError(domain: "any", code: -1, userInfo: nil))) }
+		let managedContext = persistentContainer.viewContext
 
 		let fetchRequest = NSFetchRequest<LocalCache>(entityName: "LocalCache")
 
@@ -197,7 +204,6 @@ class CoreDataFeedStore: FeedStore {
 			completion(.found(feed: result.first!.feed.array.compactMap { ($0 as? CacheFeedImage)?.localFeedImage } , timestamp: result.first!.timestamp))
 		}
 	}
-
 }
 
 //  ***********************
