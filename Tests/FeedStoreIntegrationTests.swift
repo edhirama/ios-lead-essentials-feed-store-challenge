@@ -44,17 +44,17 @@ class FeedStoreIntegrationTests: XCTestCase {
 	}
 	
 	func test_insert_overridesFeedInsertedOnAnotherInstance() throws {
-//		let storeToInsert = try makeSUT()
-//		let storeToOverride = try makeSUT()
-//		let storeToLoad = try makeSUT()
-//
-//		insert((uniqueImageFeed(), Date()), to: storeToInsert)
-//
-//		let latestFeed = uniqueImageFeed()
-//		let latestTimestamp = Date()
-//		insert((latestFeed, latestTimestamp), to: storeToOverride)
-//
-//		expect(storeToLoad, toRetrieve: .found(feed: latestFeed, timestamp: latestTimestamp))
+		let storeToInsert = try makeSUT()
+		let storeToOverride = try makeSUT()
+		let storeToLoad = try makeSUT()
+
+		insert((uniqueImageFeed(), Date()), to: storeToInsert)
+
+		let latestFeed = uniqueImageFeed()
+		let latestTimestamp = Date()
+		insert((latestFeed, latestTimestamp), to: storeToOverride)
+
+		expect(storeToLoad, toRetrieve: .found(feed: latestFeed, timestamp: latestTimestamp))
 	}
 	
 	func test_delete_deletesFeedInsertedOnAnotherInstance() throws {
@@ -76,11 +76,11 @@ class FeedStoreIntegrationTests: XCTestCase {
 		let bundle = Bundle(for: CoreDataFeedStore.self)
 		return try CoreDataFeedStore(storeURL: testStoreURL(), bundle: bundle)
 	}
-	
+
 	private func setupEmptyStoreState() throws {
-		
+
 	}
-	
+
 	private func undoStoreSideEffects() throws {
 
 	}
