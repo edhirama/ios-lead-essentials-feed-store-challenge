@@ -121,6 +121,7 @@ class CoreDataFeedStore: FeedStore {
 	private static let resourceName: String = "FeedStore"
 
 	private let persistentContainer: NSPersistentContainer
+	private let context: NSManagedObjectContext
 
 	init(storeURL: URL, bundle: Bundle = .main) throws {
 		self.storeURL = storeURL
@@ -141,25 +142,33 @@ class CoreDataFeedStore: FeedStore {
 			throw CoreDataError.unableToLoad(error)
 		}
 		self.persistentContainer = container
+		self.context = container.newBackgroundContext()
 	}
 
 	func deleteCachedFeed(completion: @escaping DeletionCompletion) {
-		let managedContext = persistentContainer.viewContext
-		deleteCurrentCacheIfNeeded(in: managedContext)
-		try! managedContext.save()
+		let managedContext = context
+		do {
+			self.deleteCurrentCacheIfNeeded(in: managedContext)
+			try managedContext.save()
 
-		completion(nil)
+			completion(nil)
+		} catch {
+			completion(error)
+		}
 	}
 
 	func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
-		let managedContext = persistentContainer.viewContext
+		let managedContext = context
+		do {
+			self.deleteCurrentCacheIfNeeded(in: managedContext)
+			self.createNewCachedFeed(feed, timestamp: timestamp, in: managedContext)
 
-		deleteCurrentCacheIfNeeded(in: managedContext)
-		createNewCachedFeed(feed, timestamp: timestamp, in: managedContext)
+			try managedContext.save()
 
-		try! managedContext.save()
-
-		completion(nil)
+			completion(nil)
+		} catch {
+			completion(error)
+		}
 	}
 
 	private func createNewCachedFeed(_ feed: [LocalFeedImage], timestamp: Date, in context: NSManagedObjectContext) {
@@ -193,15 +202,18 @@ class CoreDataFeedStore: FeedStore {
 	}
 
 	func retrieve(completion: @escaping RetrievalCompletion) {
-		let managedContext = persistentContainer.viewContext
+		let managedContext = context
+		do {
+			let fetchRequest = NSFetchRequest<LocalCache>(entityName: "LocalCache")
 
-		let fetchRequest = NSFetchRequest<LocalCache>(entityName: "LocalCache")
-
-		let result = try! managedContext.fetch(fetchRequest)
-		if result.isEmpty {
-			completion(.empty)
-		} else {
-			completion(.found(feed: result.first!.feed.array.compactMap { ($0 as? CacheFeedImage)?.localFeedImage } , timestamp: result.first!.timestamp))
+			let result = try managedContext.fetch(fetchRequest)
+			if result.isEmpty {
+				completion(.empty)
+			} else {
+				completion(.found(feed: result.first!.feed.array.compactMap { ($0 as? CacheFeedImage)?.localFeedImage } , timestamp: result.first!.timestamp))
+			}
+		} catch {
+			completion(.failure(error))
 		}
 	}
 }
