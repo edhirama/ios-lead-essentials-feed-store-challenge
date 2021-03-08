@@ -126,7 +126,11 @@ class CoreDataFeedStore: FeedStore {
 	init(storeURL: URL, bundle: Bundle = .main) throws {
 		self.storeURL = storeURL
 		self.bundle = bundle
+		self.persistentContainer = try CoreDataFeedStore.loadPersistendContainer(storeURL: storeURL, bundle: bundle)
+		self.context = persistentContainer.newBackgroundContext()
+	}
 
+	private static func loadPersistendContainer(storeURL: URL, bundle: Bundle) throws -> NSPersistentContainer {
 		guard let bundleURL = bundle.url(forResource: CoreDataFeedStore.resourceName, withExtension: "momd"),
 			  let model = NSManagedObjectModel(contentsOf: bundleURL) else { throw CoreDataError.unableToFindModel }
 
@@ -141,8 +145,7 @@ class CoreDataFeedStore: FeedStore {
 		if let error = loadError {
 			throw CoreDataError.unableToLoad(error)
 		}
-		self.persistentContainer = container
-		self.context = container.newBackgroundContext()
+		return container
 	}
 
 	private func deleteCurrentCacheIfNeeded(in context: NSManagedObjectContext) {
