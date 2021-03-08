@@ -85,12 +85,8 @@ class FeedStoreIntegrationTests: XCTestCase {
 
 	}
 
-	private func removeTestStore() throws {
-		try? FileManager.default.removeItem(at: testStoreURL())
-	}
-
 	private func cacheDirectory() -> URL {
-		FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
+		FileManager.default.urls(for: .allApplicationsDirectory, in: .localDomainMask).first!
 	}
 
 	private func testStoreURL() -> URL {

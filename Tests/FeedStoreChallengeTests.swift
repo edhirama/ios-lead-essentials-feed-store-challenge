@@ -145,6 +145,35 @@ class CoreDataFeedStore: FeedStore {
 		self.context = container.newBackgroundContext()
 	}
 
+	private func deleteCurrentCacheIfNeeded(in context: NSManagedObjectContext) {
+		let fetchRequest: NSFetchRequest<LocalCache> = NSFetchRequest(entityName: LocalCache.className())
+		if let fetchResult = try? context.fetch(fetchRequest), let existingFeed = fetchResult.first {
+			context.delete(existingFeed)
+		}
+	}
+}
+
+extension CoreDataFeedStore {
+
+	func retrieve(completion: @escaping RetrievalCompletion) {
+		let managedContext = context
+		do {
+			let fetchRequest = NSFetchRequest<LocalCache>(entityName: "LocalCache")
+
+			let result = try managedContext.fetch(fetchRequest)
+			if let cacheResult = result.first {
+				completion(.found(feed: cacheResult.feed.array.compactMap { ($0 as? CacheFeedImage)?.localFeedImage } , timestamp: cacheResult.timestamp))
+			} else {
+				completion(.empty)
+			}
+		} catch {
+			completion(.failure(error))
+		}
+	}
+}
+
+extension CoreDataFeedStore {
+
 	func deleteCachedFeed(completion: @escaping DeletionCompletion) {
 		let managedContext = context
 		do {
@@ -156,6 +185,9 @@ class CoreDataFeedStore: FeedStore {
 			completion(error)
 		}
 	}
+}
+
+extension CoreDataFeedStore {
 
 	func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
 		let managedContext = context
@@ -182,13 +214,6 @@ class CoreDataFeedStore: FeedStore {
 		localCache.timestamp = timestamp
 	}
 
-	private func deleteCurrentCacheIfNeeded(in context: NSManagedObjectContext) {
-		let fetchRequest: NSFetchRequest<LocalCache> = NSFetchRequest(entityName: LocalCache.className())
-		if let fetchResult = try? context.fetch(fetchRequest), let existingFeed = fetchResult.first {
-			context.delete(existingFeed)
-		}
-	}
-
 	private func entity(for localFeedImage: LocalFeedImage, withManagedContext managedContext: NSManagedObjectContext) -> CacheFeedImage {
 		let entity = NSEntityDescription.entity(forEntityName: CacheFeedImage.className(), in: managedContext)!
 		let feedImage = CacheFeedImage(entity: entity, insertInto: managedContext)
@@ -199,21 +224,5 @@ class CoreDataFeedStore: FeedStore {
 		feedImage.url = localFeedImage.url
 
 		return feedImage
-	}
-
-	func retrieve(completion: @escaping RetrievalCompletion) {
-		let managedContext = context
-		do {
-			let fetchRequest = NSFetchRequest<LocalCache>(entityName: "LocalCache")
-
-			let result = try managedContext.fetch(fetchRequest)
-			if result.isEmpty {
-				completion(.empty)
-			} else {
-				completion(.found(feed: result.first!.feed.array.compactMap { ($0 as? CacheFeedImage)?.localFeedImage } , timestamp: result.first!.timestamp))
-			}
-		} catch {
-			completion(.failure(error))
-		}
 	}
 }
