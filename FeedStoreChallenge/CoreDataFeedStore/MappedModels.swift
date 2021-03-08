@@ -20,8 +20,8 @@ public class LocalCache: NSManagedObject {
 public class CacheFeedImage: NSManagedObject {
 
 	@NSManaged public var id: UUID
-	@NSManaged public var imageDescription: String
-	@NSManaged public var location: String
+	@NSManaged public var imageDescription: String?
+	@NSManaged public var location: String?
 	@NSManaged public var url: URL
 
 	public var localFeedImage: LocalFeedImage {

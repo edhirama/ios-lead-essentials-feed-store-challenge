@@ -21,6 +21,7 @@
 		6808CE8125EFD2550081B4CD /* FeedStore.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 685E3C4325EEC7C800635F81 /* FeedStore.xcdatamodeld */; };
 		6808CE8725F023E50081B4CD /* MappedModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6808CE8625F023E50081B4CD /* MappedModels.swift */; };
 		685E3C4A25EEC7D700635F81 /* FeedStore.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 685E3C4325EEC7C800635F81 /* FeedStore.xcdatamodeld */; };
+		688A1EBA25F67A260033FE54 /* CoreDataFeedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688A1EB925F67A260033FE54 /* CoreDataFeedStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -50,6 +51,7 @@
 		08CE2BB42285BEF100183A1B /* FeedStoreChallengeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedStoreChallengeTests.swift; sourceTree = "<group>"; };
 		6808CE8625F023E50081B4CD /* MappedModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MappedModels.swift; sourceTree = "<group>"; };
 		685E3C4425EEC7C800635F81 /* FeedStore.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = FeedStore.xcdatamodel; sourceTree = "<group>"; };
+		688A1EB925F67A260033FE54 /* CoreDataFeedStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataFeedStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -130,6 +132,7 @@
 			children = (
 				685E3C4325EEC7C800635F81 /* FeedStore.xcdatamodeld */,
 				6808CE8625F023E50081B4CD /* MappedModels.swift */,
+				688A1EB925F67A260033FE54 /* CoreDataFeedStore.swift */,
 			);
 			path = CoreDataFeedStore;
 			sourceTree = "<group>";
@@ -244,6 +247,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				688A1EBA25F67A260033FE54 /* CoreDataFeedStore.swift in Sources */,
 				6808CE8725F023E50081B4CD /* MappedModels.swift in Sources */,
 				08CE2BA62285BCB600183A1B /* FeedStore.swift in Sources */,
 				685E3C4A25EEC7D700635F81 /* FeedStore.xcdatamodeld in Sources */,
