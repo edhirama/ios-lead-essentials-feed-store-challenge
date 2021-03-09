@@ -72,9 +72,11 @@ class FeedStoreIntegrationTests: XCTestCase {
 	// - MARK: Helpers
 	
 
-	private func makeSUT() throws -> FeedStore {
+	private func makeSUT(file: StaticString = #filePath, line: UInt = #line) throws -> FeedStore {
 		let bundle = Bundle(for: CoreDataFeedStore.self)
-		return try CoreDataFeedStore(storeURL: testStoreURL(), bundle: bundle)
+		let sut = try CoreDataFeedStore(storeURL: testStoreURL(), bundle: bundle)
+		trackForMemoryLeaks(sut, file: file, line: line)
+		return sut
 	}
 
 	private func setupEmptyStoreState() throws {
@@ -93,4 +95,9 @@ class FeedStoreIntegrationTests: XCTestCase {
 		cacheDirectory().appendingPathComponent("\(String(describing: self)).store")
 	}
 
+	private func trackForMemoryLeaks(_ instance: AnyObject, file: StaticString = #filePath, line: UInt = #line) {
+		addTeardownBlock { [weak instance] in
+			XCTAssertNil(instance, file: file, line: line)
+		}
+	}
 }
