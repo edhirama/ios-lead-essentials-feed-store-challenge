@@ -60,17 +60,19 @@ extension CoreDataFeedStore {
 
 	public func retrieve(completion: @escaping RetrievalCompletion) {
 		let managedContext = context
-		do {
-			let fetchRequest = NSFetchRequest<LocalCache>(entityName: "LocalCache")
+		context.perform {
+			do {
+				let fetchRequest = NSFetchRequest<LocalCache>(entityName: "LocalCache")
 
-			let result = try managedContext.fetch(fetchRequest)
-			if let cacheResult = result.first {
-				completion(.found(feed: cacheResult.feed.array.compactMap { ($0 as? CacheFeedImage)?.localFeedImage } , timestamp: cacheResult.timestamp))
-			} else {
-				completion(.empty)
+				let result = try managedContext.fetch(fetchRequest)
+				if let cacheResult = result.first {
+					completion(.found(feed: cacheResult.feed.array.compactMap { ($0 as? CacheFeedImage)?.localFeedImage } , timestamp: cacheResult.timestamp))
+				} else {
+					completion(.empty)
+				}
+			} catch {
+				completion(.failure(error))
 			}
-		} catch {
-			completion(.failure(error))
 		}
 	}
 }
@@ -79,13 +81,15 @@ extension CoreDataFeedStore {
 
 	public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
 		let managedContext = context
-		do {
-			self.deleteCurrentCacheIfNeeded(in: managedContext)
-			try managedContext.save()
+		context.perform {
+			do {
+				self.deleteCurrentCacheIfNeeded(in: managedContext)
+				try managedContext.save()
 
-			completion(nil)
-		} catch {
-			completion(error)
+				completion(nil)
+			} catch {
+				completion(error)
+			}
 		}
 	}
 }
@@ -94,15 +98,17 @@ extension CoreDataFeedStore {
 
 	public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
 		let managedContext = context
-		do {
-			self.deleteCurrentCacheIfNeeded(in: managedContext)
-			self.createNewCachedFeed(feed, timestamp: timestamp, in: managedContext)
+		context.perform {
+			do {
+				self.deleteCurrentCacheIfNeeded(in: managedContext)
+				self.createNewCachedFeed(feed, timestamp: timestamp, in: managedContext)
 
-			try managedContext.save()
+				try managedContext.save()
 
-			completion(nil)
-		} catch {
-			completion(error)
+				completion(nil)
+			} catch {
+				completion(error)
+			}
 		}
 	}
 
