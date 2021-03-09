@@ -79,11 +79,15 @@ class FeedStoreIntegrationTests: XCTestCase {
 	}
 
 	private func setupEmptyStoreState() throws {
-
+		deleteStoreArtifacts()
 	}
 
 	private func undoStoreSideEffects() throws {
+		deleteStoreArtifacts()
+	}
 
+	private func deleteStoreArtifacts() {
+		try? FileManager.default.removeItem(at: testStoreURL())
 	}
 
 	private func cacheDirectory() -> URL {
