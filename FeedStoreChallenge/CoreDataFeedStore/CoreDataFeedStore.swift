@@ -46,7 +46,7 @@ public class CoreDataFeedStore: FeedStore {
 
 	private func deleteCurrentCacheIfNeeded(in context: NSManagedObjectContext) {
 		let fetchRequest: NSFetchRequest<LocalCache> = NSFetchRequest(entityName: LocalCache.className())
-		if let fetchResult = try? context.fetch(fetchRequest), let existingFeed = fetchResult.first {
+		if let existingFeed = try? context.fetch(fetchRequest).first {
 			context.delete(existingFeed)
 		}
 	}
