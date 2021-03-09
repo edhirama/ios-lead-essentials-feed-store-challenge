@@ -14,6 +14,10 @@ public class LocalCache: NSManagedObject {
 
 	@NSManaged public var feed: NSOrderedSet
 	@NSManaged public var timestamp: Date
+
+	public var localFeed: [LocalFeedImage] {
+		feed.array.compactMap { ($0 as? CacheFeedImage)?.localFeedImage }
+	}
 }
 
 @objc(CacheFeedImage)

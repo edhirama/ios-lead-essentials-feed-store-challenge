@@ -62,7 +62,7 @@ extension CoreDataFeedStore {
 
 				let result = try managedContext.fetch(fetchRequest)
 				if let cacheResult = result.first {
-					completion(.found(feed: cacheResult.feed.array.compactMap { ($0 as? CacheFeedImage)?.localFeedImage } , timestamp: cacheResult.timestamp))
+					completion(.found(feed: cacheResult.localFeed , timestamp: cacheResult.timestamp))
 				} else {
 					completion(.empty)
 				}
