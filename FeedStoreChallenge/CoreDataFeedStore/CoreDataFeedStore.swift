@@ -111,16 +111,13 @@ extension CoreDataFeedStore {
 		var cacheFeed = [CacheFeedImage]()
 		feed.forEach { cacheFeed.append(self.entity(for: $0, withManagedContext: context))}
 
-
-		let cacheEntity = NSEntityDescription.entity(forEntityName: LocalCache.className(), in: context)!
-		let localCache = LocalCache(entity: cacheEntity, insertInto: context)
+		let localCache = LocalCache(context: context)
 		localCache.feed = NSOrderedSet(array: cacheFeed)
 		localCache.timestamp = timestamp
 	}
 
 	private func entity(for localFeedImage: LocalFeedImage, withManagedContext managedContext: NSManagedObjectContext) -> CacheFeedImage {
-		let entity = NSEntityDescription.entity(forEntityName: CacheFeedImage.className(), in: managedContext)!
-		let feedImage = CacheFeedImage(entity: entity, insertInto: managedContext)
+		let feedImage = CacheFeedImage(context: managedContext)
 
 		feedImage.id = localFeedImage.id
 		feedImage.imageDescription = localFeedImage.description

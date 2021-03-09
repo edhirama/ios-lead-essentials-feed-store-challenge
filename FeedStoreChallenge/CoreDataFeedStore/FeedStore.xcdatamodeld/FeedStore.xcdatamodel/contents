@@ -8,7 +8,7 @@
         <relationship name="cache" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="LocalCache" inverseName="feed" inverseEntity="LocalCache"/>
     </entity>
     <entity name="LocalCache" representedClassName="LocalCache" syncable="YES">
-        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="feed" toMany="YES" minCount="1" deletionRule="Cascade" ordered="YES" destinationEntity="CacheFeedImage" inverseName="cache" inverseEntity="CacheFeedImage"/>
     </entity>
     <elements>
