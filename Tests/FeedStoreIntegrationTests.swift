@@ -97,10 +97,4 @@ class FeedStoreIntegrationTests: XCTestCase {
 	private func testStoreURL() -> URL {
 		cacheDirectory().appendingPathComponent("\(String(describing: self)).store")
 	}
-
-	private func trackForMemoryLeaks(_ instance: AnyObject, file: StaticString = #filePath, line: UInt = #line) {
-		addTeardownBlock { [weak instance] in
-			XCTAssertNil(instance, file: file, line: line)
-		}
-	}
 }
