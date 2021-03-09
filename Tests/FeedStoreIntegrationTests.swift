@@ -87,7 +87,7 @@ class FeedStoreIntegrationTests: XCTestCase {
 	}
 
 	private func cacheDirectory() -> URL {
-		FileManager.default.urls(for: .allApplicationsDirectory, in: .localDomainMask).first!
+		FileManager.default.urls(for: .cachesDirectory, in: .localDomainMask).first!
 	}
 
 	private func testStoreURL() -> URL {
