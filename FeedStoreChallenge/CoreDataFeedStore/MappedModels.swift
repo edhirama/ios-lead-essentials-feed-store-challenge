@@ -12,8 +12,8 @@ import CoreData
 @objc(LocalCache)
 internal class LocalCache: NSManagedObject {
 
-	@NSManaged public var feed: NSOrderedSet
-	@NSManaged public var timestamp: Date
+	@NSManaged internal var feed: NSOrderedSet
+	@NSManaged internal var timestamp: Date
 
 	internal var localFeed: [LocalFeedImage] {
 		feed.array.compactMap { ($0 as? CacheFeedImage)?.localFeedImage }
@@ -23,10 +23,10 @@ internal class LocalCache: NSManagedObject {
 @objc(CacheFeedImage)
 internal class CacheFeedImage: NSManagedObject {
 
-	@NSManaged public var id: UUID
-	@NSManaged public var imageDescription: String?
-	@NSManaged public var location: String?
-	@NSManaged public var url: URL
+	@NSManaged internal var id: UUID
+	@NSManaged internal var imageDescription: String?
+	@NSManaged internal var location: String?
+	@NSManaged internal var url: URL
 
 	internal var localFeedImage: LocalFeedImage {
 		LocalFeedImage(id: id, description: imageDescription, location: location, url: url)

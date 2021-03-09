@@ -95,6 +95,6 @@ class FeedStoreIntegrationTests: XCTestCase {
 	}
 
 	private func testStoreURL() -> URL {
-		cacheDirectory().appendingPathComponent("\(String(describing: self)).store")
+		cacheDirectory().appendingPathComponent("\(type(of: self)).store")
 	}
 }
