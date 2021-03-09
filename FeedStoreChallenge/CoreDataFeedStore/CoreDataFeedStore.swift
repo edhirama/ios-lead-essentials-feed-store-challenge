@@ -15,17 +15,12 @@ public class CoreDataFeedStore: FeedStore {
 		case unableToLoad(Error)
 	}
 
-	private let storeURL: URL
-	private let bundle: Bundle
-
 	private static let resourceName: String = "FeedStore"
 
 	private let persistentContainer: NSPersistentContainer
 	private let context: NSManagedObjectContext
 
 	public init(storeURL: URL, bundle: Bundle = .main) throws {
-		self.storeURL = storeURL
-		self.bundle = bundle
 		self.persistentContainer = try CoreDataFeedStore.loadPersistendContainer(storeURL: storeURL, bundle: bundle)
 		self.context = persistentContainer.newBackgroundContext()
 	}
