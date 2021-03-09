@@ -20,12 +20,13 @@ public class CoreDataFeedStore: FeedStore {
 	private let persistentContainer: NSPersistentContainer
 	private let context: NSManagedObjectContext
 
-	public init(storeURL: URL, bundle: Bundle = .main) throws {
-		self.persistentContainer = try CoreDataFeedStore.loadPersistendContainer(storeURL: storeURL, bundle: bundle)
+	public init(storeURL: URL) throws {
+		self.persistentContainer = try CoreDataFeedStore.loadPersistendContainer(storeURL: storeURL)
 		self.context = persistentContainer.newBackgroundContext()
 	}
 
-	private static func loadPersistendContainer(storeURL: URL, bundle: Bundle) throws -> NSPersistentContainer {
+	private static func loadPersistendContainer(storeURL: URL) throws -> NSPersistentContainer {
+		let bundle = Bundle(for: CoreDataFeedStore.self)
 		guard let bundleURL = bundle.url(forResource: CoreDataFeedStore.resourceName, withExtension: "momd"),
 			  let model = NSManagedObjectModel(contentsOf: bundleURL) else { throw CoreDataError.unableToFindModel }
 
